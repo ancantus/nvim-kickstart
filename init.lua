@@ -258,6 +258,7 @@ require('lazy').setup({
   --       Uncomment any of the lines below to enable them.
   -- require 'kickstart.plugins.autoformat',
   -- require 'kickstart.plugins.debug',
+--  require 'restep.lsp.ocaml',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    You can use this folder to prevent any conflicts with this init.lua if you're interested in keeping
@@ -422,10 +423,10 @@ vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = 
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'ocaml'},
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
-    auto_install = false,
+    auto_install = true,
 
     highlight = { enable = true },
     indent = { enable = true },
@@ -603,6 +604,23 @@ mason_lspconfig.setup_handlers {
     }
   end,
 }
+
+-- sideloaded ocaml LSP. Mason has an old baked in server
+local handlers = {
+  ['textDocument/definition'] = function(_, result, _)
+    if not vim.tbl_islist(result) or type(result) ~= 'table' then
+      return result
+    end
+    ---@diagnostic disable-next-line: missing-parameter
+    vim.lsp.util.jump_to_location(result[1])
+  end,
+}
+require('lspconfig')['ocamllsp'].setup({
+  capabilities = capabilities,
+  on_attach = on_attach,
+  -- settings = utils.servers["ocamllsp"],
+  handlers = handlers,
+})
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
